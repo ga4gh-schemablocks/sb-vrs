@@ -1,2 +1,3 @@
 # sb-vr-spec
-SchemaBlocks Version of the GA4GH Variant Representation Specification
+
+This repository contains the [SchemaBlocks](http://schemablocks.org) version of the GA4GH Variant Representation Specification ([ga4gh/vr-spec](https://github.com/ga4gh/vr-spec/)).

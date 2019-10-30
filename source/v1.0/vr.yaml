@@ -1,0 +1,198 @@
+$schema: "http://json-schema.org/schema#"
+title: "GA4GH-VR-Definitions"
+type: object
+
+definitions:
+  # VR definitions are presented top-down.  Everything rolls up to
+  # Variation, which is a polymorphic abstraction of many kinds of
+  # variation.
+
+
+  ############################################################################
+  # Variation
+
+  Variation:
+    additionalProperties: false
+    description: >-
+      A polymorphic representation of variation
+    oneOf:
+      - $ref: "#/definitions/Text"
+      - $ref: "#/definitions/Allele"
+      # future expansion of variation types will go here
+    discriminator:
+      propertyName: type
+
+  Text:
+    additionalProperties: false
+    type: object
+    properties:
+      type:
+        type: string
+        enum: [Text]
+        default: Text
+      _id:
+        $ref: "#/definitions/CURIE"
+      definition:
+        type: string
+        description: >-
+          An textual representation of variation intended to capture
+          variation descriptions that cannot be parsed, but still
+          treated as variation.
+
+  Allele:
+    additionalProperties: false
+    description: An assertion of a sequence state at a Location.
+    type: object
+    properties:
+      type:
+        type: string
+        enum: [Allele]
+        default: Allele
+      _id:
+        $ref: "#/definitions/CURIE"
+      location:
+        $ref: "#/definitions/Location"
+      state:
+        $ref: "#/definitions/State"
+
+
+  ############################################################################
+  # Locations
+
+  Location:
+    additionalProperties: false
+    description: >-
+      A Location represents a span on a specific sequence.
+    oneOf:
+      - $ref: "#/definitions/SequenceLocation"
+    discriminator:
+      propertyName: type
+
+  SequenceLocation:
+    additionalProperties: false
+    type: object
+    properties:
+      type:
+        type: string
+        enum: [SequenceLocation]
+        default: SequenceLocation
+      _id:
+        $ref: "#/definitions/CURIE"
+      sequence_id:
+        $ref: "#/definitions/CURIE"
+      interval:
+        $ref: "#/definitions/Interval"
+
+
+  ############################################################################
+  # Interval
+  # * SimpleInterval
+
+  Interval:
+    additionalProperties: false
+    description: >-
+      An Interval represents a span of sequence. Positions are
+      always represented by contiguous spans using interbase
+      coordinates.
+
+      This definition of Interval is intended to be compatible with that
+      in Sequence Ontology
+      ([SO:0000001](http://www.sequenceontology.org/browser/current_svn/term/SO:0000001)),
+      with the exception that the GA4GH VR Interval may be
+      zero-width. The SO definition is for an "extent greater than
+      zero".
+    oneOf:
+      - $ref: '#/definitions/SimpleInterval'
+    discriminator:
+      propertyName: type
+
+  SimpleInterval:
+    additionalProperties: false
+    type: object
+    properties:
+      type:
+        type: string
+        enum: [SimpleInterval]
+        default: SimpleInterval
+      start:
+        type: integer
+        nullable: true
+      end:
+        type: integer
+        nullable: true
+    required:
+      - start
+      - end
+    example:
+      type: SimpleInterval
+      start: 11
+      end: 22
+
+
+  ############################################################################
+  # States
+
+  State:
+    oneOf:
+      - $ref: "#/definitions/SequenceState"
+
+  SequenceState:
+    additionalProperties: false
+    type: object
+    properties:
+      type:
+        type: string
+        enum: [SequenceState]
+        default: SequenceState
+      sequence:
+        type: string
+        nullable: false
+    required:
+      - type
+      - sequence
+    example:
+      type: SequenceState
+      sequence: C
+
+
+  ############################################################################
+  # Basic types
+  # These types are used solely within other definitions.
+
+  DateTime:
+    additionalProperties: false
+    type: string
+    format: "date-time"
+
+  CURIE:
+    additionalProperties: false
+    description: >-
+      A string that refers to an object uniquely.  The lifetime and
+      scope of an id is defined by the sender.
+
+      VR does not impose any contraints on strings used as ids in
+      messages. However, to maximize sharability of data, the VR
+      Specification RECOMMENDS that implementations use [W3C Compact
+      URI (CURIE)](https://www.w3.org/TR/curie/) syntax.
+
+      String CURIEs are represented as `prefix`:`reference` (W3C
+      terminology), but often referred to as `namespace`:`accession`
+      or `namespace`:`local id` colloquially.
+
+      The VR specification also RECOMMENDS that `prefix` be defined in
+      identifiers.org.
+
+      The `reference` component is an unconstrained string.
+
+      A CURIE is a URI.  URIs may *locate* objects (i.e., specify
+      where to retrieve them) or *name* objects conceptually.  VR uses
+      CURIEs primarily as a naming mechanism.
+
+      Implementations MAY provide CURIE resolution mechanisms for
+      prefixes to make these objects locatable.
+
+      Using internal ids in public messages is strongly discouraged.
+
+    type: string
+    pattern: '^\w[^:]+:.+$'
+    example: "ga4gh:GA.01234abcde"
